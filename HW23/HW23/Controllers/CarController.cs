@@ -3,6 +3,7 @@ using HW23.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HW23.Controllers
 {
@@ -27,8 +28,11 @@ namespace HW23.Controllers
 		[HttpPost]
 		public async Task Add([FromForm] Car car)
 		{
-			_context.Cars.Add(car);
-			await _context.SaveChangesAsync();
+			if (ModelState.IsValid)
+			{
+				_context.Cars.Add(car);
+				await _context.SaveChangesAsync();
+			}
 		}
 
 		[HttpPut]
@@ -38,10 +42,13 @@ namespace HW23.Controllers
 
 			if (carToUpdate != null)
 			{
-				carToUpdate.Model += "UPGRADED!";
+				if (ModelState.IsValid)
+				{
+					carToUpdate.Model += "UPGRADED!";
 
-				_context.Cars.Update(carToUpdate);
-				await _context.SaveChangesAsync();
+					_context.Cars.Update(carToUpdate);
+					await _context.SaveChangesAsync();
+				}
 			}
 		}
 
@@ -56,6 +63,5 @@ namespace HW23.Controllers
 				await _context.SaveChangesAsync();
 			}
 		}
-
 	}
 }
