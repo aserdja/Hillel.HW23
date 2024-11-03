@@ -9,7 +9,7 @@ namespace HW23.Data
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=HW23Db;Integrated Security=True");
+			optionsBuilder.UseSqlServer();
 		}
 	}
 }
