@@ -1,40 +1,61 @@
 ﻿using HW23.Data;
 using HW23.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace HW23.Controllers
 {
-	public class CarController(AppDbContext context)
+	[Route("api/[controller]")]
+	[ApiController]
+	public class CarController(AppDbContext context) : ControllerBase
 	{
 		private readonly AppDbContext _context = context;
 
+		[HttpGet]
 		public async Task<IEnumerable<Car>> GetAllAsync()
 		{
 			return await _context.Cars.ToListAsync();
 		}
 
-		public async Task<Car?> GetById(int id)
+		[HttpGet("{id}")]
+		public async Task<Car?> GetByIdAsync(int id)
 		{
-			return await _context.Cars.FirstOrDefaultAsync(c => c.Id == id);
+			return await _context.Cars.FirstOrDefaultAsync(c => c.Id.Equals(id));
 		}
 
-		public async Task Add(Car car)
+		[HttpPost]
+		public async Task Add([FromForm] Car car)
 		{
 			_context.Cars.Add(car);
 			await _context.SaveChangesAsync();
 		}
 
-		public async Task Update(Car car)
+		[HttpPut]
+		public async Task UpdateById(int id)
 		{
-			_context.Cars.Update(car);
-			await _context.SaveChangesAsync();
+			var carToUpdate = await _context.Cars.FirstOrDefaultAsync(c => c.Id.Equals(id));
+
+			if (carToUpdate != null)
+			{
+				carToUpdate.Model += "UPGRADED!";
+
+				_context.Cars.Update(carToUpdate);
+				await _context.SaveChangesAsync();
+			}
 		}
 
+		[HttpDelete]
 		public async Task DeleteById(int id)
 		{
-			var carToRemove = await _context.Cars.FirstOrDefaultAsync(c => c.Id == id);
-			_context.Cars.Remove(carToRemove);
-			await _context.SaveChangesAsync();
+			var carToRemove = await _context.Cars.FirstOrDefaultAsync(c => c.Id.Equals(id));
+
+			if (carToRemove != null)
+			{
+				_context.Cars.Remove(carToRemove);
+				await _context.SaveChangesAsync();
+			}
 		}
+
 	}
 }
