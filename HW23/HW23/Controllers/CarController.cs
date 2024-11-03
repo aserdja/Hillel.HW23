@@ -3,6 +3,8 @@ using HW23.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HW23.Controllers
 {
@@ -13,22 +15,49 @@ namespace HW23.Controllers
 		private readonly AppDbContext _context = context;
 
 		[HttpGet]
-		public async Task<IEnumerable<Car>> GetAllAsync()
+		public async Task<IActionResult> GetAllAsync()
 		{
-			return await _context.Cars.ToListAsync();
+			try
+			{
+				return Ok(await _context.Cars.ToListAsync());
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, $"{ex.Message}");
+			}
+			
 		}
 
 		[HttpGet("{id}")]
-		public async Task<Car?> GetByIdAsync(int id)
+		public async Task<IActionResult> GetByIdAsync(int id)
 		{
-			return await _context.Cars.FirstOrDefaultAsync(c => c.Id.Equals(id));
+			var result = await _context.Cars.FirstOrDefaultAsync(c => c.Id.Equals(id));
+			if (result != null)
+			{
+				return Ok(result);
+			}
+			return NotFound();
+			
 		}
 
 		[HttpPost]
-		public async Task Add([FromForm] Car car)
+		public async Task<IActionResult> Add([FromForm] Car car)
 		{
-			_context.Cars.Add(car);
-			await _context.SaveChangesAsync();
+			try
+			{
+				if (ModelState.IsValid)
+				{
+					_context.Cars.Add(car);
+					await _context.SaveChangesAsync();
+				}
+
+				return Ok();
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, $"{ex.Message}");
+			}
+			
 		}
 
 		[HttpPut]
@@ -38,10 +67,13 @@ namespace HW23.Controllers
 
 			if (carToUpdate != null)
 			{
-				carToUpdate.Model += "UPGRADED!";
+				if (ModelState.IsValid)
+				{
+					carToUpdate.Model += "UPGRADED!";
 
-				_context.Cars.Update(carToUpdate);
-				await _context.SaveChangesAsync();
+					_context.Cars.Update(carToUpdate);
+					await _context.SaveChangesAsync();
+				}
 			}
 		}
 
@@ -56,6 +88,5 @@ namespace HW23.Controllers
 				await _context.SaveChangesAsync();
 			}
 		}
-
 	}
 }
